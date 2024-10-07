@@ -34,7 +34,7 @@ jobs:
 
       - name: Run tests
         run: |
-          npx playwright install --withdeps chromium
+          npx playwright install --with-deps chromium
           npm run test:coverage
         
       - name: Update coverage

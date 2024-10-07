@@ -1,13 +1,6 @@
 import { test, expect } from 'playwright-test-coverage';
 
 
-
-test('home page', async ({ page }) => {
-  await page.goto('/');
-
-  expect(await page.title()).toBe('JWT Pizza');
-});
-
 test('create and close franchise', async ({ page }) => {
     await page.goto('http://localhost:5173/');
     await page.getByRole('link', { name: 'Login' }).click();

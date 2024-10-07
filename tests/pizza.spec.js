@@ -2,6 +2,111 @@ import { test, expect } from 'playwright-test-coverage';
 
 
 test('create and close franchise', async ({ page }) => {
+    await page.route('*/**/api/franchise', async (route) => {
+        if (route.request().method() == 'GET') {
+            const franRes = [
+      {
+        "id": 245,
+        "name": "newFranchise",
+        "admins": [
+          {
+            "id": 3,
+            "name": "pizza franchisee",
+            "email": "f@jwt.com"
+          }
+        ],
+        "stores": []
+      },
+      {
+        "id": 2,
+        "name": "pizzaJoint",
+        "admins": [
+          {
+            "id": 365,
+            "name": "chixxrdpsg",
+            "email": "chixxrdpsg@admin.com"
+          }
+        ],
+        "stores": []
+      },
+      {
+        "id": 1,
+        "name": "pizzaPocket",
+        "admins": [
+          {
+            "id": 3,
+            "name": "pizza franchisee",
+            "email": "f@jwt.com"
+          }
+        ],
+        "stores": [
+          {
+            "id": 148,
+            "name": "SLC",
+            "totalRevenue": 0.0756
+          }
+        ]
+      }
+    ];
+            expect(route.request().method()).toBe('GET');
+            await route.fulfill({ json: franRes });
+        } else {
+        const franReq = {
+      "stores": [],
+      "name": "newFranchise",
+      "admins": [
+        {
+          "email": "f@jwt.com"
+        }
+      ]
+    };
+            const franRes = {
+      "stores": [],
+      "name": "newFranchise",
+      "admins": [
+        {
+          "email": "f@jwt.com",
+          "id": 3,
+          "name": "pizza franchisee"
+        }
+      ],
+      "id": 245
+    };
+            expect(route.request().method()).toBe('POST');
+        expect(route.request().postDataJSON()).toMatchObject(franReq);
+            await route.fulfill({ json: franRes });
+    }
+        });
+    await page.route('*/**/api/auth', async (route) => {
+        const authReq = {
+      "email": "Alia@admin.com",
+      "password": "toomanysecrets"
+    };
+            const authRes = {
+      "user": {
+        "id": 1288,
+        "name": "Alia",
+        "email": "Alia@admin.com",
+        "roles": [
+          {
+            "role": "admin"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTI4OCwibmFtZSI6IkFsaWEiLCJlbWFpbCI6IkFsaWFAYWRtaW4uY29tIiwicm9sZXMiOlt7InJvbGUiOiJhZG1pbiJ9XSwiaWF0IjoxNzI4Mjg1NDIxfQ.MFRhVewmk3qR7dNKyuOIZl82GYx6LMNuLhGN9Rznobg"
+    };
+            expect(route.request().method()).toBe('PUT');
+        expect(route.request().postDataJSON()).toMatchObject(authReq);
+            await route.fulfill({ json: authRes });
+        });
+    await page.route('*/**/api/franchise/245', async (route) => {
+            const franRes = {
+      "message": "franchise deleted"
+    };
+            expect(route.request().method()).toBe('DELETE');
+            await route.fulfill({ json: franRes });
+        });
+    
     await page.goto('http://localhost:5173/');
     await page.getByRole('link', { name: 'Login' }).click();
     await page.getByPlaceholder('Email address').fill('Alia@admin.com');
@@ -23,6 +128,78 @@ test('create and close franchise', async ({ page }) => {
 })
 
 test('create and close franchise store', async ({ page }) => {
+    await page.route('*/**/api/auth', async (route) => {
+        const authReq = {
+      "email": "f@jwt.com",
+      "password": "franchisee"
+    };
+            const authRes = {
+      "user": {
+        "id": 3,
+        "name": "pizza franchisee",
+        "email": "f@jwt.com",
+        "roles": [
+          {
+            "objectId": 1,
+            "role": "franchisee"
+          }
+        ]
+      },
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywibmFtZSI6InBpenphIGZyYW5jaGlzZWUiLCJlbWFpbCI6ImZAand0LmNvbSIsInJvbGVzIjpbeyJvYmplY3RJZCI6MSwicm9sZSI6ImZyYW5jaGlzZWUifV0sImlhdCI6MTcyODI4NDk4MX0.lJRm7c0xBEz2w3A7KKQ65p5pUmkx5y1YNMt2nqil-uI"
+    };
+            expect(route.request().method()).toBe('PUT');
+        expect(route.request().postDataJSON()).toMatchObject(authReq);
+            await route.fulfill({ json: authRes });
+        });
+    await page.route('*/**/api/franchise/3', async (route) => {
+            const franRes = [
+      {
+        "id": 1,
+        "name": "pizzaPocket",
+        "admins": [
+          {
+            "id": 3,
+            "name": "pizza franchisee",
+            "email": "f@jwt.com"
+          }
+        ],
+        "stores": [
+          {
+            "id": 148,
+            "name": "SLC",
+            "totalRevenue": 0.0756
+          },
+          {
+            "id": 168,
+            "name": "Lodi",
+            "totalRevenue": 0
+          }
+        ]
+      }
+    ];
+            expect(route.request().method()).toBe('GET');
+            await route.fulfill({ json: franRes });
+        });
+    await page.route('*/**/api/franchise/1/store', async (route) => {
+        const franReq = {
+      "name": "Lodi"
+    };
+            const franRes = {
+      "id": 168,
+      "franchiseId": 1,
+      "name": "Lodi"
+    };
+            expect(route.request().method()).toBe('POST');
+        expect(route.request().postDataJSON()).toMatchObject(franReq);
+            await route.fulfill({ json: franRes });
+        });
+    await page.route('*/**/api/franchise/1/store/168', async (route) => {
+            const franRes = {
+      "message": "store deleted"
+    };
+            expect(route.request().method()).toBe('DELETE');
+            await route.fulfill({ json: franRes });
+        });
     await page.goto('http://localhost:5173/');
     await page.getByRole('link', { name: 'Login' }).click();
     await page.getByPlaceholder('Email address').fill('f@jwt.com');
@@ -37,14 +214,78 @@ test('create and close franchise store', async ({ page }) => {
     await page.getByPlaceholder('store name').click();
     await page.getByPlaceholder('store name').fill('Lodi');
     await page.getByRole('button', { name: 'Create' }).click();
-    // await expect(page.locator('tbody')).toContainText('Lodi');
-    // await page.getByRole('row', { name: 'Lodi 0 ₿ Close' }).getByRole('button').click();
-    // await expect(page.getByRole('main')).toContainText('Are you sure you want to close the pizzaPocket store Lodi ? This cannot be restored. All outstanding revenue with not be refunded.');
-    // await page.getByRole('button', { name: 'Close' }).click();
+    await expect(page.locator('tbody')).toContainText('Lodi');
+    await page.getByRole('row', { name: 'Lodi 0 ₿ Close' }).getByRole('button').click();
+    await expect(page.getByRole('main')).toContainText('Are you sure you want to close the pizzaPocket store Lodi ? This cannot be restored. All outstanding revenue with not be refunded.');
+    await page.getByRole('button', { name: 'Close' }).click();
     // await expect(page.locator('tbody')).not.toContainText('Lodi');
 })
 
 test('diner dashboard', async ({ page }) => {
+    await page.route('*/**/api/auth', async (route) => {
+        const authReq = {
+      "email": "a@jwt.com",
+      "password": "admin"
+    };
+            const authRes = {
+      "user": {
+        "id": 1,
+        "name": "常用名字",
+        "email": "a@jwt.com",
+        "roles": []
+      },
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibmFtZSI6IuW4uOeUqOWQjeWtlyIsImVtYWlsIjoiYUBqd3QuY29tIiwicm9sZXMiOltdLCJpYXQiOjE3MjgyODM2OTZ9.e6FmF19p11hR7sJThSViYdtKsi1njfxaFackuKlMW88"
+    };
+            expect(route.request().method()).toBe('PUT');
+        expect(route.request().postDataJSON()).toMatchObject(authReq);
+            await route.fulfill({ json: authRes });
+        });
+    await page.route('*/**/api/order', async (route) => {
+            const orderRes = {
+      "dinerId": 1,
+      "orders": [],
+      "page": 1
+    };
+            expect(route.request().method()).toBe('GET');
+            await route.fulfill({ json: orderRes });
+        });
+    await page.route('*/**/api/franchise', async (route) => {
+            const franRes = [
+      {
+        "id": 2,
+        "name": "pizzaJoint",
+        "stores": []
+      },
+      {
+        "id": 1,
+        "name": "pizzaPocket",
+        "stores": [
+          {
+            "id": 148,
+            "name": "SLC"
+          },
+          {
+            "id": 162,
+            "name": "Lodi"
+          },
+          {
+            "id": 163,
+            "name": "Lodi"
+          },
+          {
+            "id": 164,
+            "name": "Lodi"
+          },
+          {
+            "id": 165,
+            "name": "Lodi"
+          }
+        ]
+      }
+    ];
+            expect(route.request().method()).toBe('GET');
+            await route.fulfill({ json: franRes });
+        });
     await page.goto('http://localhost:5173/');
     await page.getByRole('link', { name: 'Login' }).click();
     await page.getByPlaceholder('Email address').click();
@@ -59,6 +300,29 @@ test('diner dashboard', async ({ page }) => {
 })
 
 test('register', async ({ page }) => {
+    await page.route('*/**/api/auth', async (route) => {
+        const authReq = {
+      "name": "Maria",
+      "email": "maria@fakee.com",
+      "password": "m"
+    };
+            const authRes = {
+      "user": {
+        "name": "Maria",
+        "email": "maria@fakee.com",
+        "roles": [
+          {
+            "role": "diner"
+          }
+        ],
+        "id": 1327
+      },
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiTWFyaWEiLCJlbWFpbCI6Im1hcmlhQGZha2VlLmNvbSIsInJvbGVzIjpbeyJyb2xlIjoiZGluZXIifV0sImlkIjoxMzI3LCJpYXQiOjE3MjgyODI0NzR9.lFI8fvCp5L7NkvFKhozICCLHpcsou91fyLP229K2dbU"
+    };
+            expect(route.request().method()).toBe('POST');
+        expect(route.request().postDataJSON()).toMatchObject(authReq);
+            await route.fulfill({ json: authRes });
+    });
     await page.goto('http://localhost:5173/');
     await page.getByRole('link', { name: 'Register' }).click();
     await page.getByPlaceholder('Full name').click();
